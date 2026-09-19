@@ -1,21 +1,2 @@
-import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const specialty = searchParams.get("specialty");
-  const limit = Math.min(Number(searchParams.get("limit") || 20), 50);
-
-  let query = supabaseAdmin
-    .from("mechanics")
-    .select("id, full_name, business_name, specialties, service_radius_km, latitude, longitude, verified, rating_average, rating_count, mechanic_ratings(rating, review, service_type, created_at)")
-    .eq("verified", true)
-    .limit(limit);
-
-  if (specialty) query = query.contains("specialties", [specialty]);
-
-  const { data, error } = await query.order("rating_average", { ascending: false });
-  if (error) return NextResponse.json({ error: "Unable to load mechanics" }, { status: 500 });
-
-  return NextResponse.json({ mechanics: data ?? [] });
-}
+import {NextResponse} from "next/server"; import {mechanicsStore} from "@/lib/mechanics-store";
+export async function GET(request:Request){const {searchParams}=new URL(request.url);const specialty=searchParams.get("specialty");const limit=Math.min(Math.max(Number(searchParams.get("limit")||20),1),50);let ms=mechanicsStore.mechanics.filter(m=>m.verified);if(specialty)ms=ms.filter(m=>m.specialties.includes(specialty));const mechanics=ms.sort((a,b)=>b.rating_average-a.rating_average).slice(0,limit).map(m=>({...m,mechanic_ratings:mechanicsStore.ratings.filter(r=>r.mechanic_id===m.id).sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,3)}));return NextResponse.json({mechanics});}
