@@ -17,9 +17,31 @@ export default function RateMechanic() {
   const searchParams = useSearchParams();
   const jobId = searchParams.get("jobId") || "";
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!rating || !job) return;
+    if (!rating || !job || !jobId) {
+      setError("A completed job link is required before a rating can be saved.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/ratings", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        jobId,
+        rating,
+        review: form.get("review"),
+        recommended: form.get("recommend") === "on"
+      })
+    });
+    const payload = await response.json();
+    setSaving(false);
+    if (!response.ok) {
+      setError(payload.error || "Unable to save rating.");
+      return;
+    }
     setSubmitted(true);
   }
 
