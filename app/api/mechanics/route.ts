@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
   let query = supabaseAdmin
     .from("mechanics")
-    .select("id, full_name, business_name, specialties, service_radius_km, latitude, longitude, verified, rating_average, rating_count")
+    .select("id, full_name, business_name, specialties, service_radius_km, latitude, longitude, verified, rating_average, rating_count, mechanic_ratings(rating, review, service_type, created_at)")
     .eq("verified", true)
     .limit(limit);
 
