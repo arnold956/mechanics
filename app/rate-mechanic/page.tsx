@@ -1,5 +1,7 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import {FormEvent, useState} from "react";
 import {ArrowLeft, CheckCircle2, Star, Wrench} from "lucide-react";
 import Link from "next/link";
@@ -10,6 +12,10 @@ export default function RateMechanic() {
   const [rating, setRating] = useState(0);
   const [job, setJob] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const jobId = searchParams.get("jobId") || "";
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,7 +73,7 @@ export default function RateMechanic() {
           </section>
 
           <label className="recommend"><input type="checkbox" name="recommend"/><span>I'd recommend this mechanic to other customers.</span></label>
-          <button className="primary wide" type="submit" disabled={!rating || !job}>Submit job rating</button>
+          {error && <p className="form-error">{error}</p>}\n          <button className="primary wide" type="submit" disabled={!rating || !job || saving}>{saving ? "Saving rating…" : "Submit job rating"}</button>
         </form>
       </div>
     </main>
