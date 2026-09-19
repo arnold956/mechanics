@@ -1,15 +1,10 @@
-import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+import {NextResponse} from "next/server";
+import {mechanicsStore} from "@/lib/mechanics-store";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { data, error } = await supabaseAdmin
-    .from("mechanic_ratings")
-    .select("id, service_type, rating, review, recommended, created_at")
-    .eq("mechanic_id", id)
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  if (error) return NextResponse.json({ error: "Unable to load reviews" }, { status: 500 });
-  return NextResponse.json({ reviews: data ?? [] });
+export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
+  const {id}=await params;
+  const mechanic=mechanicsStore.mechanics.find(m=>m.id===id);
+  if(!mechanic)return NextResponse.json({error:"Mechanic not found"},{status:404});
+  const reviews=mechanicsStore.ratings.filter(r=>r.mechanic_id===id).sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,50);
+  return NextResponse.json({reviews});
 }
